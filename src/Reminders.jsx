@@ -8,6 +8,8 @@ export default function Reminders({ userId }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [checklist, setChecklist] = useState([]);
+  const [checklistInput, setChecklistInput] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
@@ -58,6 +60,39 @@ export default function Reminders({ userId }) {
     return true;
   };
 
+  const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
+
+  const addChecklistItem = () => {
+    if (checklistInput.trim()) {
+      setChecklist([
+        ...checklist,
+        { id: generateId(), text: checklistInput.trim(), completed: false }
+      ]);
+      setChecklistInput('');
+    }
+  };
+
+  const removeChecklistItem = (id) => {
+    setChecklist(checklist.filter(item => item.id !== id));
+  };
+
+  const toggleChecklistItem = async (reminderId, itemId) => {
+    const reminder = reminders.find(r => r.id === reminderId);
+    if (reminder && reminder.checklist) {
+      const updatedChecklist = reminder.checklist.map(item =>
+        item.id === itemId ? { ...item, completed: !item.completed } : item
+      );
+      try {
+        await update(ref(database, `reminders/${userId}/${reminderId}`), {
+          checklist: updatedChecklist
+        });
+      } catch (err) {
+        console.error('Erro ao atualizar checklist:', err);
+        setError('Erro ao atualizar checklist. Tente novamente.');
+      }
+    }
+  };
+
   const handleAddReminder = async (e) => {
     e.preventDefault();
     
@@ -69,6 +104,7 @@ export default function Reminders({ userId }) {
       title: title.trim(),
       description: description.trim(),
       dueDate,
+      checklist: checklist.length > 0 ? checklist : [],
       completed: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -87,6 +123,8 @@ export default function Reminders({ userId }) {
       setTitle('');
       setDescription('');
       setDueDate('');
+      setChecklist([]);
+      setChecklistInput('');
       setError('');
     } catch (err) {
       console.error('Erro ao salvar:', err);
@@ -100,6 +138,8 @@ export default function Reminders({ userId }) {
     setTitle(reminder.title);
     setDescription(reminder.description || '');
     setDueDate(reminder.dueDate || '');
+    setChecklist(reminder.checklist || []);
+    setChecklistInput('');
     setEditingId(reminder.id);
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -133,6 +173,8 @@ export default function Reminders({ userId }) {
     setTitle('');
     setDescription('');
     setDueDate('');
+    setChecklist([]);
+    setChecklistInput('');
     setEditingId(null);
     setError('');
   };
@@ -245,6 +287,46 @@ export default function Reminders({ userId }) {
           />
         </div>
 
+        <div className="form-group">
+          <label>📋 Checklist</label>
+          <div className="checklist-input-group">
+            <input
+              type="text"
+              placeholder="Digite um item do checklist..."
+              value={checklistInput}
+              onChange={(e) => setChecklistInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addChecklistItem())}
+              className="input-field"
+              disabled={isSaving}
+            />
+            <button
+              type="button"
+              onClick={addChecklistItem}
+              className="btn btn-secondary"
+              disabled={isSaving || !checklistInput.trim()}
+            >
+              ➕ Adicionar
+            </button>
+          </div>
+          {checklist.length > 0 && (
+            <ul className="checklist-items">
+              {checklist.map((item) => (
+                <li key={item.id} className="checklist-item">
+                  <span>{item.text}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeChecklistItem(item.id)}
+                    className="btn-remove"
+                    disabled={isSaving}
+                  >
+                    ✕
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <div className="button-group">
           <button type="submit" className="btn btn-primary" disabled={isSaving}>
             {isSaving ? '⏳ Salvando...' : editingId ? '✏️ Atualizar' : '➕ Adicionar'}
@@ -338,6 +420,21 @@ export default function Reminders({ userId }) {
                 <div className="reminder-text">
                   <h3>{reminder.title}</h3>
                   {reminder.description && <p>{reminder.description}</p>}
+                  {reminder.checklist && reminder.checklist.length > 0 && (
+                    <ul className="reminder-checklist">
+                      {reminder.checklist.map((item) => (
+                        <li key={item.id} className={item.completed ? 'completed' : ''}>
+                          <input
+                            type="checkbox"
+                            checked={item.completed}
+                            onChange={() => toggleChecklistItem(reminder.id, item.id)}
+                            disabled={isSaving}
+                          />
+                          <span>{item.text}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <div className="reminder-meta">
                     {reminder.dueDate && (
                       <span className="due-date">
