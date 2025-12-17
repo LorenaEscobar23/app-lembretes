@@ -1,0 +1,127 @@
+.notification-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  animation: slideDown 0.3s ease;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  color: white;
+}
+
+.banner-icon {
+  font-size: 1.5rem;
+  animation: bounce 2s infinite;
+}
+
+.banner-text h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.banner-text p {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.banner-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.banner-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.banner-btn.enable {
+  background: white;
+  color: #667eea;
+}
+
+.banner-btn.enable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.banner-btn.dismiss {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.banner-btn.dismiss:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@media (max-width: 768px) {
+  .notification-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .banner-content {
+    width: 100%;
+  }
+
+  .banner-actions {
+    width: 100%;
+  }
+
+  .banner-btn {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.8rem;
+  }
+
+  .banner-text h3 {
+    font-size: 0.9rem;
+  }
+
+  .banner-text p {
+    font-size: 0.75rem;
+  }
+}

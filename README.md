@@ -48,6 +48,14 @@ Um app moderno, robusto e responsivo para gerenciar seus lembretes pessoais com 
 - Validação de formulários robusta
 - Estatísticas em tempo real
 
+### V3.0 - Filmes & Livros + Notificações
+- 🎬 **Nova aba Filmes & Livros** para registrar mídias
+- 🔔 **Notificações Push** no celular para lembretes próximos
+- 📱 **PWA Instalável** - App nativo no celular
+- 💾 **Modo Offline** - Funciona sem internet
+- 🚀 **Service Worker** para cache inteligente
+- 📌 **Anotações** - Seção separada para notas sem data
+
 ## 🚀 Quick Start
 
 ### 1. Clonar/Baixar o Projeto
@@ -85,6 +93,20 @@ Abra [http://localhost:5173](http://localhost:5173) no navegador.
 - **Tablet** (768px - 1024px): Ajustes inteligentes
 - **Mobile** (< 768px): Interface otimizada para toque
 
+## 🔔 Notificações no Celular
+
+O app envia notificações quando:
+- Um lembrete está próximo ao vencimento (15 minutos)
+- Um lembrete venceu e ainda não foi completado
+- Você adiciona um novo lembrete, anotação ou filme
+
+**Para habilitar:**
+1. Clique em "Ativar" no banner azul
+2. Autorize as notificações do navegador
+3. Pronto! Você receberá alertas
+
+[Ver guia completo de notificações →](NOTIFICACOES.md)
+
 ## 🛠️ Stack Tecnológico
 
 | Tecnologia | Versão | Uso |
@@ -93,6 +115,7 @@ Abra [http://localhost:5173](http://localhost:5173) no navegador.
 | Vite | 5+ | Build tool moderno |
 | Firebase | Latest | Auth + Realtime Database |
 | CSS3 | Latest | Estilos modernos |
+| PWA | Latest | App instalável |
 
 ## 📂 Estrutura de Arquivos
 

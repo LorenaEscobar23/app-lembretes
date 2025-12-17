@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { ref, push, update, remove, onValue } from 'firebase/database';
 import { database } from './firebase';
+import { NotificationService } from './NotificationService';
 import './Reminders.css';
 
-export default function Reminders({ userId }) {
-  const [reminders, setReminders] = useState([]);
+export default function Reminders({ userId, setReminders }) {
+  const [reminders, setRemindersLocal] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [checklist, setChecklist] = useState([]);
-  const [checklistInput, setChecklistInput] = useState('');
-  const [editingId, setEditingId] = useState(null);
+  const [checklistInput, setChecklistInput] = useState('');  const [enableNotifications, setEnableNotifications] = useState(true);  const [editingId, setEditingId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
@@ -31,8 +31,10 @@ export default function Reminders({ userId }) {
             id,
             ...value,
           }));
+          setRemindersLocal(remindersList);
           setReminders(remindersList);
         } else {
+          setRemindersLocal([]);
           setReminders([]);
         }
         setLoading(false);
@@ -105,6 +107,7 @@ export default function Reminders({ userId }) {
       description: description.trim(),
       dueDate,
       checklist: checklist.length > 0 ? checklist : [],
+      enableNotifications,
       completed: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -118,6 +121,8 @@ export default function Reminders({ userId }) {
       } else {
         const remindersRef = ref(database, `reminders/${userId}`);
         await push(remindersRef, reminderData);
+        // Notificar quando lembrete é adicionado
+        NotificationService.notifyReminderAdded(title);
       }
 
       setTitle('');
@@ -140,6 +145,7 @@ export default function Reminders({ userId }) {
     setDueDate(reminder.dueDate || '');
     setChecklist(reminder.checklist || []);
     setChecklistInput('');
+    setEnableNotifications(reminder.enableNotifications !== false);
     setEditingId(reminder.id);
     setError('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -161,7 +167,14 @@ export default function Reminders({ userId }) {
   const handleToggleComplete = async (reminder) => {
     try {
       const updateRef = ref(database, `reminders/${userId}/${reminder.id}`);
-      await update(updateRef, { completed: !reminder.completed });
+      const isCompleting = !reminder.completed;
+      await update(updateRef, { completed: isCompleting });
+      
+      // Notificar quando lembrete é completado
+      if (isCompleting) {
+        NotificationService.notifyReminderCompleted(reminder.title);
+      }
+      
       setError('');
     } catch (err) {
       console.error('Erro ao atualizar:', err);
@@ -175,6 +188,7 @@ export default function Reminders({ userId }) {
     setDueDate('');
     setChecklist([]);
     setChecklistInput('');
+    setEnableNotifications(true);
     setEditingId(null);
     setError('');
   };
@@ -214,24 +228,7 @@ export default function Reminders({ userId }) {
   return (
     <div className="reminders-container">
       <div className="header-section">
-        <div>
-          <h1>📝 Meus Lembretes</h1>
-          <p className="subtitle">Mantenha suas tarefas organizadas e nunca perca um prazo</p>
-        </div>
-        <div className="stats-container">
-          <div className="stat-card">
-            <span className="stat-number">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-number">{stats.pending}</span>
-            <span className="stat-label">Pendentes</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-number">{stats.completed}</span>
-            <span className="stat-label">Concluídos</span>
-          </div>
-        </div>
+        <h1>📝 Meus Lembretes</h1>
       </div>
 
       {error && (
@@ -325,6 +322,19 @@ export default function Reminders({ userId }) {
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="form-group checkbox">
+          <input
+            id="enableNotifications"
+            type="checkbox"
+            checked={enableNotifications}
+            onChange={(e) => setEnableNotifications(e.target.checked)}
+            disabled={isSaving}
+          />
+          <label htmlFor="enableNotifications">
+            🔔 Receber notificação no celular
+          </label>
         </div>
 
         <div className="button-group">
