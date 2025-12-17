@@ -9,8 +9,11 @@ export default function Reminders({ userId, setReminders }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [notificationTime, setNotificationTime] = useState('09:00');
   const [checklist, setChecklist] = useState([]);
-  const [checklistInput, setChecklistInput] = useState('');  const [enableNotifications, setEnableNotifications] = useState(true);  const [editingId, setEditingId] = useState(null);
+  const [checklistInput, setChecklistInput] = useState('');
+  const [enableNotifications, setEnableNotifications] = useState(true);
+  const [editingId, setEditingId] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('date');
@@ -106,6 +109,7 @@ export default function Reminders({ userId, setReminders }) {
       title: title.trim(),
       description: description.trim(),
       dueDate,
+      notificationTime,
       checklist: checklist.length > 0 ? checklist : [],
       enableNotifications,
       completed: false,
@@ -128,8 +132,10 @@ export default function Reminders({ userId, setReminders }) {
       setTitle('');
       setDescription('');
       setDueDate('');
+      setNotificationTime('09:00');
       setChecklist([]);
       setChecklistInput('');
+      setEnableNotifications(true);
       setError('');
     } catch (err) {
       console.error('Erro ao salvar:', err);
@@ -143,6 +149,7 @@ export default function Reminders({ userId, setReminders }) {
     setTitle(reminder.title);
     setDescription(reminder.description || '');
     setDueDate(reminder.dueDate || '');
+    setNotificationTime(reminder.notificationTime || '09:00');
     setChecklist(reminder.checklist || []);
     setChecklistInput('');
     setEnableNotifications(reminder.enableNotifications !== false);
@@ -186,6 +193,7 @@ export default function Reminders({ userId, setReminders }) {
     setTitle('');
     setDescription('');
     setDueDate('');
+    setNotificationTime('09:00');
     setChecklist([]);
     setChecklistInput('');
     setEnableNotifications(true);
@@ -279,6 +287,18 @@ export default function Reminders({ userId, setReminders }) {
             type="date"
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
+            className="input-field"
+            disabled={isSaving}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="notificationTime">⏰ Horário da Notificação</label>
+          <input
+            id="notificationTime"
+            type="time"
+            value={notificationTime}
+            onChange={(e) => setNotificationTime(e.target.value)}
             className="input-field"
             disabled={isSaving}
           />

@@ -59,28 +59,48 @@ export class NotificationService {
 
   static checkUpcomingReminders(reminders) {
     const now = new Date();
-    const reminderWindow = 15 * 60 * 1000; // 15 minutos
+    const currentHour = String(now.getHours()).padStart(2, '0');
+    const currentMinute = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHour}:${currentMinute}`;
 
     reminders.forEach((reminder) => {
       // Verificar se as notificações estão habilitadas para este lembrete
       if (!reminder.dueDate || reminder.completed || reminder.enableNotifications === false) return;
 
       const dueDate = new Date(reminder.dueDate);
-      const timeDiff = dueDate.getTime() - now.getTime();
+      const reminderDate = dueDate.toISOString().split('T')[0]; // Data do lembrete (YYYY-MM-DD)
+      const todayDate = new Date().toISOString().split('T')[0]; // Data de hoje
 
-      // Se o lembrete vence em menos de 15 minutos
+      // Verificar se é para notificar no horário especificado
+      const notificationTime = reminder.notificationTime || '09:00';
+      const notificationKey = `timed_${reminder.id}_${todayDate}`;
+      
+      if (reminderDate >= todayDate && currentTime >= notificationTime && !sessionStorage.getItem(notificationKey)) {
+        // Notificar no horário especificado
+        this.sendNotification(`⏰ ${reminder.title}`, {
+          body: `Lembrete agendado para as ${notificationTime}`,
+          tag: `timed-reminder-${reminder.id}`,
+          requireInteraction: true,
+        });
+        sessionStorage.setItem(notificationKey, 'true');
+      }
+
+      const timeDiff = dueDate.getTime() - now.getTime();
+      const reminderWindow = 15 * 60 * 1000; // 15 minutos
+
+      // Se o lembrete vence em menos de 15 minutos (alerta de proximidade)
       if (timeDiff > 0 && timeDiff <= reminderWindow) {
         const minutesLeft = Math.ceil(timeDiff / 60000);
         
         // Notificar apenas uma vez por lembrete
-        const notificationKey = `notified_${reminder.id}`;
-        if (!sessionStorage.getItem(notificationKey)) {
+        const proximityKey = `proximity_${reminder.id}`;
+        if (!sessionStorage.getItem(proximityKey)) {
           this.sendNotification(`⏰ Lembrete Próximo!`, {
             body: `${reminder.title} vence em ${minutesLeft} minuto${minutesLeft > 1 ? 's' : ''}`,
             tag: `reminder-${reminder.id}`,
             requireInteraction: true,
           });
-          sessionStorage.setItem(notificationKey, 'true');
+          sessionStorage.setItem(proximityKey, 'true');
         }
       }
 
